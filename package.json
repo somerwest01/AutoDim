@@ -15,7 +15,7 @@
     "react-konva": "^18.0.3",
     "xlsx": "^0.18.5",
     "konva": "^9.3.3",
-    "dxf-parser": "^1.3.1"
+    "dxf-parser": "^1.3.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.2",
@@ -25,4 +25,5 @@
     "vite": "^5.4.8"
   }
 }
+
 
