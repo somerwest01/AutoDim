@@ -75,23 +75,47 @@ const handleImportDXF = (e) => {
       const helper = new Helper(content);
       const dxf = helper.denormalised;
 
-      // Filtrar entidades de tipo "LINE"
-      const importedLines = (dxf.entities || [])
+      let importedLines = [];
+
+      // Procesar LINE normales
+      (dxf.entities || [])
         .filter(ent => ent.type === "LINE")
-        .map(ent => ({
-          p1: { x: ent.vertices[0].x, y: ent.vertices[0].y },
-          p2: { x: ent.vertices[1].x, y: ent.vertices[1].y },
-          obj1: "Ninguno",
-          obj2: "Ninguno",
-          nombre_obj1: "",
-          nombre_obj2: "",
-          dimension_mm: null,
-          deduce1: "",
-          deduce2: "",
-        }));
+        .forEach(ent => {
+          importedLines.push({
+            p1: { x: ent.vertices[0].x, y: ent.vertices[0].y },
+            p2: { x: ent.vertices[1].x, y: ent.vertices[1].y },
+            obj1: "Ninguno",
+            obj2: "Ninguno",
+            nombre_obj1: "",
+            nombre_obj2: "",
+            dimension_mm: null,
+            deduce1: "",
+            deduce2: "",
+          });
+        });
+
+      // Procesar LWPOLYLINE
+      (dxf.entities || [])
+        .filter(ent => ent.type === "LWPOLYLINE")
+        .forEach(ent => {
+          const verts = ent.vertices || [];
+          for (let i = 0; i < verts.length - 1; i++) {
+            importedLines.push({
+              p1: { x: verts[i].x, y: verts[i].y },
+              p2: { x: verts[i + 1].x, y: verts[i + 1].y },
+              obj1: "Ninguno",
+              obj2: "Ninguno",
+              nombre_obj1: "",
+              nombre_obj2: "",
+              dimension_mm: null,
+              deduce1: "",
+              deduce2: "",
+            });
+          }
+        });
 
       setLines(importedLines);
-      setStatusMessage(`✅ ${importedLines.length} líneas importadas de DXF`);
+      setStatusMessage(`✅ ${importedLines.length} segmentos importados de DXF`);
     } catch (err) {
       setStatusMessage("❌ Error al leer DXF");
       console.error(err);
@@ -100,6 +124,7 @@ const handleImportDXF = (e) => {
 
   reader.readAsText(file);
 };
+
 
 
   // Importar Excel (versión resumida)
@@ -270,5 +295,6 @@ return (
     </div>
   );
 }
+
 
 
