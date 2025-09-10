@@ -60,8 +60,49 @@ export default function App() {
     };
     reader.readAsText(file);
   };
+  import { Helper } from "dxf";   // 👈 al inicio de App.jsx
+
+// dentro del componente App
+const handleImportDXF = (e) => {
+  const file = e.target.files?.[0];
+  if (!file) return;
+  const reader = new FileReader();
+
+  reader.onload = (event) => {
+    try {
+      const content = event.target.result;
+      const helper = new Helper(content);
+      const dxf = helper.denormalised;
+
+      // Filtrar entidades de tipo "LINE"
+      const importedLines = (dxf.entities || [])
+        .filter(ent => ent.type === "LINE")
+        .map(ent => ({
+          p1: { x: ent.vertices[0].x, y: ent.vertices[0].y },
+          p2: { x: ent.vertices[1].x, y: ent.vertices[1].y },
+          obj1: "Ninguno",
+          obj2: "Ninguno",
+          nombre_obj1: "",
+          nombre_obj2: "",
+          dimension_mm: null,
+          deduce1: "",
+          deduce2: "",
+        }));
+
+      setLines(importedLines);
+      setStatusMessage(`✅ ${importedLines.length} líneas importadas de DXF`);
+    } catch (err) {
+      setStatusMessage("❌ Error al leer DXF");
+      console.error(err);
+    }
+  };
+
+  reader.readAsText(file);
+};
+
 
   // Importar Excel (versión resumida)
+  
   const handleImportExcel = (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -135,23 +176,23 @@ export default function App() {
     setStatusMessage("✅ Exportado");
   };
 
-  return (
-    <div className="flex gap-6 p-4">
-      <div className="flex flex-col gap-3">
-        <Sidebar
-          onImportDXF={() => {}}
-          onImportExcel={handleImportExcel}
-          onExportExcel={handleExportExcel}
-          onSaveJSON={handleSaveJSON}
-          onOpenJSON={handleOpenJSON}
-          toggleExtremos={() => setMostrarExtremos((s) => !s)}
-          toggleCalculadora={() => setMostrarCalculadora((s) => !s)}
-          toggleExcelPanel={() => setMostrarExcel((s) => !s)}
-          statusMessage={statusMessage}
-          procesandoExcel={procesandoExcel}
-          totalCircuitos={totalCircuitos}
-          circuitosProcesados={circuitosProcesados}
-        />
+return (
+  <div className="flex gap-6 p-4">
+    <div className="flex flex-col gap-3">
+      <Sidebar
+        onImportDXF={handleImportDXF}   // ✅ ahora pasa la función real
+        onImportExcel={handleImportExcel}
+        onExportExcel={handleExportExcel}
+        onSaveJSON={handleSaveJSON}
+        onOpenJSON={handleOpenJSON}
+        toggleExtremos={() => setMostrarExtremos((s) => !s)}
+        toggleCalculadora={() => setMostrarCalculadora((s) => !s)}
+        toggleExcelPanel={() => setMostrarExcel((s) => !s)}
+        statusMessage={statusMessage}
+        procesandoExcel={procesandoExcel}
+        totalCircuitos={totalCircuitos}
+        circuitosProcesados={circuitosProcesados}
+      />
 
         {mostrarExtremos && (
           <div className="p-2 border rounded">
@@ -228,3 +269,4 @@ export default function App() {
     </div>
   );
 }
+
