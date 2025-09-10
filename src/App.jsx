@@ -7,6 +7,7 @@ import { saveAs } from "file-saver";
 import * as XLSX from "xlsx";
 
 import { dijkstra } from "./utils/dijkstra";
+import { Helper } from "dxf";   // 👈 al inicio de App.jsx
 
 function useLines(initial = []) {
   const [lines, setLines] = useState(initial);
@@ -60,7 +61,7 @@ export default function App() {
     };
     reader.readAsText(file);
   };
-  import { Helper } from "dxf";   // 👈 al inicio de App.jsx
+
 
 // dentro del componente App
 const handleImportDXF = (e) => {
@@ -269,4 +270,5 @@ return (
     </div>
   );
 }
+
 
