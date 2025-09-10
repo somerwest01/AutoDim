@@ -77,32 +77,35 @@ const handleImportDXF = (e) => {
 
       let importedLines = [];
 
-      // Procesar LINE normales
+      // Factor de escala simple (ajústalo hasta que se vea bien en tu canvas)
+      const scale = 0.1;
+
+      // Procesar LINE
       (dxf.entities || [])
         .filter(ent => ent.type === "LINE")
         .forEach(ent => {
           importedLines.push({
-            p1: { x: ent.vertices[0].x, y: ent.vertices[0].y },
-            p2: { x: ent.vertices[1].x, y: ent.vertices[1].y },
+            p1: { x: ent.vertices[0].x * scale, y: ent.vertices[0].y * scale },
+            p2: { x: ent.vertices[1].x * scale, y: ent.vertices[1].y * scale },
             obj1: "Ninguno",
             obj2: "Ninguno",
             nombre_obj1: "",
             nombre_obj2: "",
-            dimension_mm: null,
+            dimension_mm: null, // 👈 luego se asigna manual
             deduce1: "",
             deduce2: "",
           });
         });
 
-      // Procesar LWPOLYLINE
+      // Procesar LWPOLYLINE → convertir en varios segmentos
       (dxf.entities || [])
         .filter(ent => ent.type === "LWPOLYLINE")
         .forEach(ent => {
           const verts = ent.vertices || [];
           for (let i = 0; i < verts.length - 1; i++) {
             importedLines.push({
-              p1: { x: verts[i].x, y: verts[i].y },
-              p2: { x: verts[i + 1].x, y: verts[i + 1].y },
+              p1: { x: verts[i].x * scale, y: verts[i].y * scale },
+              p2: { x: verts[i + 1].x * scale, y: verts[i + 1].y * scale },
               obj1: "Ninguno",
               obj2: "Ninguno",
               nombre_obj1: "",
@@ -114,8 +117,27 @@ const handleImportDXF = (e) => {
           }
         });
 
+      // 🔎 Detectar uniones (cuando varios segmentos comparten extremos)
+      const tolerance = 5; // px
+      const unifyPoint = (pt, points) => {
+        for (const p of points) {
+          if (Math.hypot(pt.x - p.x, pt.y - p.y) < tolerance) {
+            return p; // usar el mismo punto si está cerca
+          }
+        }
+        points.push(pt);
+        return pt;
+      };
+
+      let uniquePoints = [];
+      importedLines = importedLines.map(line => {
+        const p1 = unifyPoint(line.p1, uniquePoints);
+        const p2 = unifyPoint(line.p2, uniquePoints);
+        return { ...line, p1, p2 };
+      });
+
       setLines(importedLines);
-      setStatusMessage(`✅ ${importedLines.length} segmentos importados de DXF`);
+      setStatusMessage(`✅ ${importedLines.length} segmentos dibujados desde DXF`);
     } catch (err) {
       setStatusMessage("❌ Error al leer DXF");
       console.error(err);
@@ -124,7 +146,6 @@ const handleImportDXF = (e) => {
 
   reader.readAsText(file);
 };
-
 
 
   // Importar Excel (versión resumida)
@@ -295,6 +316,7 @@ return (
     </div>
   );
 }
+
 
 
 
